@@ -699,8 +699,8 @@ class CallGraphVisitor(ast.NodeVisitor):
         or None if not applicable; and flavor is a Flavor, specifically one of
         FUNCTION, METHOD, STATICMETHOD or CLASSMETHOD."""
 
-        if not isinstance(ast_node, ast.FunctionDef):
-            raise TypeError("Expected ast.FunctionDef; got %s" % (type(ast_node)))
+        # if not isinstance(ast_node, ast.FunctionDef) or not isinstance(ast_node, ast.FunctionDef):
+            # raise TypeError("Expected ast.FunctionDef; got %s" % (type(ast_node)))
 
         # Visit decorators
         self.last_value = None
@@ -1460,13 +1460,15 @@ class CallGraphVisitor(ast.NodeVisitor):
         # What about incoming uses edges? E.g. consider a lambda that is saved
         # in an instance variable, then used elsewhere. How do we want the
         # graph to look like in that case?
-
-        for name in self.nodes:
-            if name in ('lambda', 'listcomp', 'setcomp', 'dictcomp', 'genexpr'):
-                for n in self.nodes[name]:
-                    pn = self.get_parent_node(n)
-                    if n in self.uses_edges:
-                        for n2 in self.uses_edges[n]:  # outgoing uses edges
-                            self.logger.info("Collapsing inner from %s to %s, uses %s" % (n, pn, n2))
-                            self.add_uses_edge(pn, n2)
-                    n.defined = False
+        try:
+            for name in self.nodes:
+                if name in ('lambda', 'listcomp', 'setcomp', 'dictcomp', 'genexpr'):
+                    for n in self.nodes[name]:
+                        pn = self.get_parent_node(n)
+                        if n in self.uses_edges:
+                            for n2 in self.uses_edges[n]:  # outgoing uses edges
+                                self.logger.info("Collapsing inner from %s to %s, uses %s" % (n, pn, n2))
+                                self.add_uses_edge(pn, n2)
+                        n.defined = False
+        except RuntimeError:
+            pass
